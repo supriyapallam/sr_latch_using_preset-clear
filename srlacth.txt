@@ -1,0 +1,70 @@
+//Design Code
+module sr_latch(output reg q, output wire qbar, input s,r,clk,pre,clr);
+  reg q1;
+  always@(clk)
+    begin
+      if(clk == 1'b1)
+        begin
+          q1=q;
+          case({s,r})
+            2'b00   : q1=q;
+            2'b01   : q1=1'b0;
+            2'b10   : q1=1'b1;
+            2'b11   : q1=1'bx;
+          endcase
+        end
+      else
+        begin
+          q1 = q;
+        end
+    end
+  assign q = pre ? 1'b1	: (clr ? 1'b0 : q1);
+  
+  assign qbar = ~q;
+endmodule
+
+//Test Bench Code
+module test();
+  reg clk,s,r;
+  reg pre,clr;
+  wire q,qbar;
+  
+  sr_latch DUT(q,qbar,s,r,clk,pre,clr);
+  
+  initial
+    begin
+      clk = 1'b0;
+      forever #10 clk = ~clk;
+    end
+  
+  initial
+    begin
+       pre = 1'b1;
+      #20;
+      pre = 1'b0; 
+      clr = 1'b1;
+      s = 1'b0; r = 1'b0;
+      #10;
+      s = 1'b0; r = 1'b1;
+      #20;
+      s = 1'b1; r = 1'b0;
+      #30
+      s = 1'b1; r = 1'b1;
+      #20;
+      s = 1'b0; r = 1'b1; 
+      #40;
+      $finish;
+    end
+  
+  initial
+    begin
+      $dumpfile("test.vcd");
+      $dumpvars(1);
+    end
+  
+  initial
+    begin
+      $timeformat(-9,0,"ns",10);
+      $monitor("time = %0t clk=%b s = %b r = %b q = %b qbar = %b,pre= %b,clr=%b",$time,clk,s,r,q,qbar,pre,clr);
+    end
+endmodule
